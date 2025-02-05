@@ -1,0 +1,68 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id       Int     @id @default(autoincrement())
+    name     String?
+    email    String  @unique
+    password String
+
+    @@map("users")
+}
+
+model Feature {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  icon        String
+  iconBg      String?
+  bgColor     String?
+}
+
+model Category {
+  id       Int        @id @default(autoincrement())
+  title    String
+  icon     String?
+  clients  Clients[]  
+  projects Project[]  
+  blogPosts BlogPost[] 
+}
+
+model Clients {
+  id          Int      @id @default(autoincrement())
+  title       String
+  logo        String
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+}
+
+model Project {
+  id              Int          @id @default(autoincrement())
+  title           String
+  categoryId      Int
+  category        Category     @relation(fields: [categoryId], references: [id])
+  image           String
+  preview         String?
+  description     String?
+  github          String?      @unique
+  liveUrl         String?      @unique
+}
+
+model BlogPost {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  title       String
+  author      String
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+  image       String
+  preview     String
+  description String
+  createdAt   DateTime @default(now())
+}
