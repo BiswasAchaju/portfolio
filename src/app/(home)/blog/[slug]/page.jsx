@@ -1,42 +1,41 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Clock, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 import { getBlogPostBySlug } from "../_components/Data";
 
 export default function BlogPostPage({ params }) {
-  // Use React.use to unwrap the params object
-  const [post, setPost] = React.useState(null);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const { slug } = params; // No need to unwrap params in useEffect
+  const [post, setPost] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  React.useEffect(() => {
-    (async () => {
-      // Unwrap params
-      const { slug } = await params;
+  useEffect(() => {
+    const fetchPost = async () => {
+      const blogPost = getBlogPostBySlug(slug); // Ensure this function returns the post
 
-      // Fetch the blog post using the slug
-      const blogPost = getBlogPostBySlug(slug);
-
-      // Set the post state or handle not found
       if (blogPost) {
         setPost(blogPost);
       } else {
-        notFound();
+        notFound(); // Handle not found case properly
       }
-
       setIsLoading(false);
-    })();
-  }, [params]);
+    };
 
-  // Render a loading state if needed
+    fetchPost();
+  }, [slug]); // Depend on slug only
+
   if (isLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (!post) {
+    return notFound(); // Fallback in case post is null
   }
 
   return <BlogPost post={post} />;
