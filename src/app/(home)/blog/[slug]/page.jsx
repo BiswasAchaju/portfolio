@@ -11,37 +11,48 @@ import { notFound } from "next/navigation";
 import { getBlogPostBySlug } from "../_components/Data";
 
 export default function BlogPostPage({ params }) {
-  const { slug } = params; // No need to unwrap params in useEffect
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPost = async () => {
-      const blogPost = getBlogPostBySlug(slug); // Ensure this function returns the post
+    if (!params?.slug) {
+      notFound(); // If slug is missing, trigger 404
+      return;
+    }
 
-      if (blogPost) {
+    async function fetchPost() {
+      try {
+        const blogPost = await getBlogPostBySlug(params.slug); // Await the function if it returns a promise
+
+        if (!blogPost) {
+          notFound(); // If no post is found, trigger 404
+          return;
+        }
+
         setPost(blogPost);
-      } else {
-        notFound(); // Handle not found case properly
+      } catch (error) {
+        console.error("Error fetching blog post:", error);
+        notFound();
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    };
+    }
 
     fetchPost();
-  }, [slug]); // Depend on slug only
+  }, [params?.slug]);
 
   if (isLoading) {
-    return <p>Loading...</p>;
+    return <p className="text-center text-lg">Loading...</p>;
   }
 
   if (!post) {
-    return notFound(); // Fallback in case post is null
+    return notFound(); // Ensure notFound() is handled properly
   }
 
   return <BlogPost post={post} />;
 }
 
-export function BlogPost({ post }) {
+function BlogPost({ post }) {
   return (
     <article className="max-w-4xl mx-auto px-4 py-12">
       <motion.div
